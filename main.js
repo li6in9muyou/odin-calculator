@@ -125,7 +125,7 @@ class EnterBinaryExpressionService {
   }
 }
 
-class PerformCalculationService {
+export class PerformCalculationService {
   expression;
   output_port;
 
@@ -138,7 +138,7 @@ class PerformCalculationService {
     if (ch !== "$") {
       return this.expression.addCharacter(ch);
     } else {
-      this.output_port(this.expression.evaluate());
+      this.output_port.render(this.expression);
     }
   }
 
@@ -154,13 +154,19 @@ function StringAdapter(service, text) {
   }
 }
 
-function ConsolePort(expr) {
-  console.log(expr);
+class ConsolePort {
+  render(expr) {
+    let rounded = expr.evaluate().toFixed(6);
+    if (rounded.endsWith("000000")) {
+      rounded = rounded.substring(0, rounded.length - 7);
+    }
+    console.log(expr.text, "=", rounded);
+  }
 }
 
 //tests
 const testcases = ["1234a567$", "1234s567$", "1234m567$", "1234d567$"];
 for (const testcase of testcases) {
-  let service = new PerformCalculationService(ConsolePort);
+  let service = new PerformCalculationService(new ConsolePort());
   StringAdapter(service, testcase);
 }
