@@ -220,12 +220,10 @@ class EnterDecimalService {
   }
 }
 
-const enterExpressionService = new EnterBinaryExpressionService();
-
 //adapters
-function StringAdapter(text) {
+function StringAdapter(service, text) {
   for (const ch of text) {
-    enterExpressionService.addCharacter(ch);
+    service.addCharacter(ch);
   }
 }
 
@@ -239,6 +237,11 @@ function ConsolePort(expr) {
   }
 }
 
-StringAdapter("1234d567$");
-ConsolePort(enterExpressionService.current);
-console.log("result:", enterExpressionService.evaluate());
+//tests
+const testcases = ["1234a567$", "1234s567$", "1234m567$", "1234d567$"];
+for (const testcase of testcases) {
+  let service = new EnterBinaryExpressionService();
+  StringAdapter(service, testcase);
+  ConsolePort(service.current);
+  console.log("result:", service.evaluate());
+}
