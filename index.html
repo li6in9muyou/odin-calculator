@@ -3,7 +3,165 @@
   <head>
     <meta charset="UTF-8" />
     <title>calculator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-size: 20px;
+        font-family: monospace;
+      }
+
+      body {
+        padding: 3rem;
+        background-color: dimgray;
+      }
+
+      #keypad {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(5, auto);
+        column-gap: 0.5rem;
+        row-gap: 0.5rem;
+        background-color: darkolivegreen;
+        padding: 0.5rem 0.3rem 0.3rem 0.5rem;
+        min-width: fit-content;
+      }
+
+      #numberKeyboard {
+        grid-column: 1 / span 3;
+        grid-row: 2 / span 4;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 0.5rem;
+        row-gap: 0.5rem;
+      }
+
+      button {
+        aspect-ratio: 1;
+        background-color: slategray;
+        box-shadow: black 3px 3px 0 0;
+        transform: translate(-5px, -5px);
+        border: solid black 2px;
+        cursor: pointer;
+        color: whitesmoke;
+        font-size: 15vw;
+      }
+
+      button:active {
+        transform: none;
+        box-shadow: none;
+      }
+
+      button[data-disabled] {
+        box-shadow: none;
+        filter: opacity(50%);
+        cursor: not-allowed;
+      }
+
+      #zero {
+        grid-column: 1 / span 2;
+        aspect-ratio: auto;
+      }
+
+      #plus {
+        grid-column: 4;
+        grid-row: 2 / span 2;
+        aspect-ratio: auto;
+      }
+
+      #equals {
+        grid-column: 4;
+        grid-row: 4 / span 2;
+        aspect-ratio: auto;
+      }
+
+      #display {
+        display: flex;
+        flex-direction: column;
+        row-gap: 1rem;
+        background-color: lightgreen;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+        min-width: fit-content;
+      }
+
+      #display > * {
+        font-size: 3rem;
+        text-align: end;
+      }
+
+      #small {
+        outline: dashed red 3px;
+      }
+
+      #big {
+        outline: dashed green 3px;
+      }
+
+      #calculator > * {
+        box-shadow: black 3px 3px 0 0;
+        transform: translate(-5px, -5px);
+      }
+    </style>
   </head>
-  <body></body>
-  <script src="main.js"></script>
+  <body>
+    <div id="calculator">
+      <div id="display">
+        <div id="small">1234&times;</div>
+        <div id="big">567</div>
+      </div>
+      <div id="keypad">
+        <button data-disabled>&leftarrow;</button>
+        <button data-literal="d">&divide;</button>
+        <button data-literal="m">&times;</button>
+        <button data-literal="s">&minus;</button>
+        <div id="numberKeyboard">
+          <button data-literal="1">1</button>
+          <button data-literal="2">2</button>
+          <button data-literal="3">3</button>
+          <button data-literal="4">4</button>
+          <button data-literal="5">5</button>
+          <button data-literal="6">6</button>
+          <button data-literal="7">7</button>
+          <button data-literal="8">8</button>
+          <button data-literal="9">9</button>
+          <button id="zero" data-literal="0">0</button>
+          <button data-disabled>&dot;</button>
+        </div>
+        <button id="plus" data-literal="a">&plus;</button>
+        <button id="equals" data-literal="$">&equals;</button>
+      </div>
+    </div>
+  </body>
+  <script type="module">
+    import { ConsolePort, PerformCalculationService } from "./main.js";
+
+    //adapters.gui
+    class GraphicAdapter {
+      constructor(service) {
+        const keys = document.querySelectorAll("[data-literal]");
+        console.log(keys);
+        for (const number of keys) {
+          number.addEventListener("click", (e) => {
+            const key = e.target;
+            for (const c of key.getAttribute("data-literal")) {
+              console.log("entered", c);
+              service.addCharacter(c);
+            }
+          });
+        }
+      }
+    }
+
+    const service = new PerformCalculationService(new ConsolePort());
+    const gui = new GraphicAdapter(service);
+
+    //tests
+    document.querySelector("[data-literal='9']").click();
+    document.querySelector("[data-literal='m']").click();
+    document.querySelector("[data-literal='9']").click();
+    document.querySelector("[data-literal='$']").click();
+  </script>
 </html>

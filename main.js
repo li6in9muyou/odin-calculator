@@ -154,7 +154,7 @@ function StringAdapter(service, text) {
   }
 }
 
-class ConsolePort {
+export class ConsolePort {
   render(expr) {
     let rounded = expr.evaluate().toFixed(6);
     if (rounded.endsWith("000000")) {
