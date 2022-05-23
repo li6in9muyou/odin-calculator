@@ -1,6 +1,5 @@
 // domain.js
-//service
-class EnterBinaryOperatorService {
+const OperatorRepo = new (class {
   validOperator = {
     subtract: {
       text: "s",
@@ -19,7 +18,21 @@ class EnterBinaryOperatorService {
       operate: (left, right) => left * right,
     },
   };
+  chToOperator(c) {
+    for (const [_, op] of Object.entries(this.validOperator)) {
+      if (op.text === c) {
+        return op.operate;
+      }
+    }
+    return null;
+  }
+  isOperator(ch) {
+    return null !== this.chToOperator(ch);
+  }
+})();
 
+//service
+class EnterBinaryOperatorService {
   text = "";
 
   addCharacter(ch) {
@@ -33,24 +46,15 @@ class EnterBinaryOperatorService {
     this.text = this.text.substring(0, this.text.length - 1);
   }
 
-  chToOperator(c) {
-    for (const [_, op] of Object.entries(this.validOperator)) {
-      if (op.text === c) {
-        return op.operate;
-      }
-    }
-    return null;
-  }
-
   checkValidText() {
-    return null !== this.chToOperator(this.text);
+    return OperatorRepo.isOperator(this.text);
   }
 
   operate(lhs, rhs) {
     if (!this.checkValidText()) {
       throw `Unknown binary operator: ${this.text}`;
     }
-    return this.chToOperator(this.text)(lhs, rhs);
+    return OperatorRepo.chToOperator(this.text)(lhs, rhs);
   }
 }
 
@@ -162,6 +166,9 @@ export class PerformCalculationService {
         break;
       }
       default: {
+        if (OperatorRepo.isOperator(ch) && this.expression.checkValidText()) {
+          this.addCharacter("=");
+        }
         return this.expression.addCharacter(ch);
       }
     }
@@ -199,13 +206,33 @@ export class ConsolePort {
 
 //tests
 export const testcases = [
+  /*
+    given an incomplete binary expression 
+    when user enters clear command 
+    then it should reset current binary expression
+  */
   "$1234",
   "$1234a",
+  /*
+    basic calculations
+  */
   "$1234a567=",
   "$1234s567=",
   "$1234m567=",
   "$1234d567=",
+  /*
+    given a valid binary expression
+    when user enters an equal sign
+    then it should cascade this binary expression
+  */
   "$1234a567=d1000=",
+  /*
+    given a valid binary expression
+    when user enters an operator
+    then it should cascade this binary expression before adding newly entered operator
+  */
+  "$1234a567s",
+  "$1234a567s1000m3d23=",
 ];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());
