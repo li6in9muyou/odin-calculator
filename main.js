@@ -127,14 +127,18 @@ class EnterBinaryExpressionService {
 
 class PerformCalculationService {
   expression;
+  output_port;
 
-  constructor() {
+  constructor(output_port) {
+    this.output_port = output_port;
     this.expression = new EnterBinaryExpressionService();
   }
 
   addCharacter(ch) {
     if (ch !== "$") {
       return this.expression.addCharacter(ch);
+    } else {
+      this.output_port(this.expression.evaluate());
     }
   }
 
@@ -151,14 +155,12 @@ function StringAdapter(service, text) {
 }
 
 function ConsolePort(expr) {
-  console.log(expr.text);
+  console.log(expr);
 }
 
 //tests
 const testcases = ["1234a567$", "1234s567$", "1234m567$", "1234d567$"];
 for (const testcase of testcases) {
-  let service = new PerformCalculationService();
+  let service = new PerformCalculationService(ConsolePort);
   StringAdapter(service, testcase);
-  ConsolePort(service.expression);
-  console.log("result:", service.evaluate());
 }
