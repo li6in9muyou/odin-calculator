@@ -1,4 +1,43 @@
 // domain.js
+const Operator = {
+  subtract: {
+    text: "s",
+    operate: (left, right) => left - right,
+  },
+  add: {
+    text: "a",
+    operate: (left, right) => left + right,
+  },
+  divide: {
+    text: "d",
+    operate: (left, right) => left / right,
+  },
+  multiply: {
+    text: "m",
+    operate: (left, right) => left * right,
+  },
+  addCharacter(ch) {
+    function chToOperator(c) {
+      for (const op in Operator) {
+        if (Operator[op].text === c) {
+          return Operator[op];
+        }
+      }
+    }
+
+    switch (ch) {
+      case Operator.add.text:
+      case Operator.divide.text:
+      case Operator.multiply.text:
+      case Operator.subtract.text: {
+        return chToOperator(ch);
+      }
+      default:
+        throw `Invalid operator: ${ch}`;
+    }
+  },
+};
+
 class Decimal {
   text = "";
 
@@ -31,6 +70,38 @@ class Decimal {
   }
 }
 
+class BinaryExpression {
+  operator;
+  leftExpression;
+  rightExpression;
+
+  get text() {
+    return (
+      this.leftExpression.text + this.operator.text + this.rightExpression.text
+    );
+  }
+
+  setOperator(ch) {
+    this.operator = ch;
+  }
+
+  setLeftExpression(expr) {
+    this.leftExpression = expr;
+  }
+
+  setRightExpression(expr) {
+    this.rightExpression = expr;
+  }
+
+  evaluate() {
+    return this.operator.operate(
+      this.leftExpression.evaluate(),
+      this.rightExpression.evaluate()
+    );
+  }
+}
+
+//service
 class EnterBinaryOperatorService {
   validOperator = {
     subtract: {
@@ -85,77 +156,23 @@ class EnterBinaryOperatorService {
   }
 }
 
-const Operator = {
-  subtract: {
-    text: "s",
-    operate: (left, right) => left - right,
-  },
-  add: {
-    text: "a",
-    operate: (left, right) => left + right,
-  },
-  divide: {
-    text: "d",
-    operate: (left, right) => left / right,
-  },
-  multiply: {
-    text: "m",
-    operate: (left, right) => left * right,
-  },
+class EnterDecimalService {
+  current;
+
+  constructor() {
+    this.current = new Decimal();
+  }
+
   addCharacter(ch) {
-    function chToOperator(c) {
-      for (const op in Operator) {
-        if (Operator[op].text === c) {
-          return Operator[op];
-        }
-      }
+    try {
+      this.current.addCharacter(ch);
+    } catch (e) {
+      console.error(e);
+      ConsolePort(this.current);
     }
-
-    switch (ch) {
-      case Operator.add.text:
-      case Operator.divide.text:
-      case Operator.multiply.text:
-      case Operator.subtract.text: {
-        return chToOperator(ch);
-      }
-      default:
-        throw `Invalid operator: ${ch}`;
-    }
-  },
-};
-
-class BinaryExpression {
-  operator;
-  leftExpression;
-  rightExpression;
-
-  get text() {
-    return (
-      this.leftExpression.text + this.operator.text + this.rightExpression.text
-    );
-  }
-
-  setOperator(ch) {
-    this.operator = ch;
-  }
-
-  setLeftExpression(expr) {
-    this.leftExpression = expr;
-  }
-
-  setRightExpression(expr) {
-    this.rightExpression = expr;
-  }
-
-  evaluate() {
-    return this.operator.operate(
-      this.leftExpression.evaluate(),
-      this.rightExpression.evaluate()
-    );
   }
 }
 
-//service
 class EnterBinaryExpressionService {
   current;
   left_op;
@@ -200,23 +217,6 @@ class EnterBinaryExpressionService {
 
   evaluate() {
     return this.current.evaluate();
-  }
-}
-
-class EnterDecimalService {
-  current;
-
-  constructor() {
-    this.current = new Decimal();
-  }
-
-  addCharacter(ch) {
-    try {
-      this.current.addCharacter(ch);
-    } catch (e) {
-      console.error(e);
-      ConsolePort(this.current);
-    }
   }
 }
 
