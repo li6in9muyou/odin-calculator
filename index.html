@@ -170,6 +170,8 @@
             const key = document.querySelector(`[data-literal='${ch}']`);
             if (key !== null) {
               key.click();
+            } else {
+              throw `Literal "${ch}" is not supported in this adapter`;
             }
           }
         }
