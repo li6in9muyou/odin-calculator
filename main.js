@@ -120,8 +120,19 @@ class EnterBinaryExpressionService {
     return this.lhs.text + this.op.text + this.rhs.text;
   }
 
+  checkValidText() {
+    return (
+      this.lhs.checkValidText() &&
+      this.rhs.checkValidText() &&
+      this.op.checkValidText()
+    );
+  }
+
   evaluate() {
-    return this.op.operate(this.lhs.evaluate(), this.rhs.evaluate());
+    if (this.checkValidText()) {
+      return this.op.operate(this.lhs.evaluate(), this.rhs.evaluate());
+    }
+    throw `Incomplete binary expression: "${this.text}"`;
   }
 }
 
@@ -135,15 +146,33 @@ export class PerformCalculationService {
   }
 
   addCharacter(ch) {
-    if (ch !== "$") {
-      return this.expression.addCharacter(ch);
-    } else {
-      this.output_port.render(this.expression);
+    switch (ch) {
+      case "=": {
+        this.output_port.render(this.expression);
+        const result = this.expression.evaluate();
+        this.expression = new EnterBinaryExpressionService();
+        for (const ch of result.toFixed(6).toString()) {
+          this.expression.addCharacter(ch);
+        }
+        break;
+      }
+      case "$": {
+        this.output_port.render(this.expression);
+        this.expression = new EnterBinaryExpressionService();
+        break;
+      }
+      default: {
+        return this.expression.addCharacter(ch);
+      }
     }
   }
 
   evaluate() {
-    return this.expression.evaluate();
+    try {
+      return this.expression.evaluate();
+    } catch (e) {
+      return Number.NaN;
+    }
   }
 }
 
@@ -156,21 +185,27 @@ function StringAdapter(service, text) {
 
 export class ConsolePort {
   render(expr) {
-    let rounded = expr.evaluate().toFixed(6);
-    if (rounded.endsWith("000000")) {
-      rounded = rounded.substring(0, rounded.length - 7);
+    if (expr.checkValidText()) {
+      let rounded = expr.evaluate().toFixed(6);
+      if (rounded.endsWith("000000")) {
+        rounded = rounded.substring(0, rounded.length - 7);
+      }
+      console.log("valid expression: ", expr.text, "=", rounded);
+    } else {
+      console.log("invalid expression: ", expr.text);
     }
-    console.log(expr.text, "=", rounded);
   }
 }
 
 //tests
 export const testcases = [
-  "1234a567$",
-  "1234s567$",
-  "1234m567$",
-  "1234d567$",
-  "1234a567=s1000$",
+  "$1234",
+  "$1234a",
+  "$1234a567=",
+  "$1234s567=",
+  "$1234m567=",
+  "$1234d567=",
+  "$1234a567=d1000=",
 ];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());
