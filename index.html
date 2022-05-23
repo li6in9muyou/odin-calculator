@@ -24,8 +24,6 @@
         grid-template-rows: repeat(5, auto);
         column-gap: 0.5rem;
         row-gap: 0.5rem;
-        background-color: darkolivegreen;
-        padding: 0.5rem 0.3rem 0.3rem 0.5rem;
         min-width: fit-content;
       }
 
@@ -41,7 +39,7 @@
       button {
         aspect-ratio: 1;
         background-color: slategray;
-        box-shadow: black 3px 3px 0 0;
+        box-shadow: black 8px 8px 0 0;
         transform: translate(-5px, -5px);
         border: solid black 2px;
         cursor: pointer;
@@ -55,9 +53,16 @@
       }
 
       button[data-disabled] {
+        transform: none;
         box-shadow: none;
-        filter: opacity(50%);
         cursor: not-allowed;
+        background-image: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 35px,
+          rgba(255, 255, 255, 0.5) 35px,
+          rgba(255, 255, 255, 0.5) 70px
+        );
       }
 
       #zero {
@@ -88,38 +93,36 @@
       }
 
       #display > * {
-        font-size: 3rem;
+        font-size: 8rem;
         text-align: end;
       }
 
       #small {
-        outline: dashed red 3px;
+        font-size: 4rem;
       }
 
       #big {
-        outline: dashed green 3px;
       }
 
-      #display,
-      #calculator > button {
-        box-shadow: black 3px 3px 0 0;
+      #display {
+        box-shadow: black 8px 8px 0 0 inset;
         transform: translate(-5px, -5px);
       }
 
       #command {
-        padding: 0.3rem;
+        margin-bottom: 1rem;
         display: flex;
         column-gap: 0.3rem;
         justify-content: end;
       }
 
       #command > button {
-        padding: 0.2rem 0.2rem;
+        padding: 0.4rem 2rem;
         text-transform: uppercase;
         background-color: lightsalmon;
         aspect-ratio: unset;
         font-style: italic;
-        font-size: 1rem;
+        font-size: 3rem;
         color: darkblue;
       }
     </style>
@@ -168,6 +171,7 @@
       constructor(service) {
         const keys = document.querySelectorAll("[data-literal]");
         for (const number of keys) {
+          number.addEventListener("contextmenu", (e) => e.preventDefault());
           number.addEventListener("click", (e) => {
             const key = e.target;
             for (const c of key.getAttribute("data-literal")) {
