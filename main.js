@@ -165,7 +165,7 @@ export class ConsolePort {
 }
 
 //tests
-const testcases = ["1234a567$", "1234s567$", "1234m567$", "1234d567$"];
+export const testcases = ["1234a567$", "1234s567$", "1234m567$", "1234d567$"];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());
   StringAdapter(service, testcase);

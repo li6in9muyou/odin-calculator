@@ -136,7 +136,11 @@
     </div>
   </body>
   <script type="module">
-    import { ConsolePort, PerformCalculationService } from "./main.js";
+    import {
+      testcases,
+      ConsolePort,
+      PerformCalculationService,
+    } from "./main.js";
 
     //adapters.gui
     class GraphicAdapter {
@@ -159,9 +163,19 @@
     const gui = new GraphicAdapter(service);
 
     //tests
-    document.querySelector("[data-literal='9']").click();
-    document.querySelector("[data-literal='m']").click();
-    document.querySelector("[data-literal='9']").click();
-    document.querySelector("[data-literal='$']").click();
+    class GuiTestAdapter {
+      constructor(service, tests) {
+        for (const test of tests) {
+          for (const ch of test) {
+            const key = document.querySelector(`[data-literal='${ch}']`);
+            if (key !== null) {
+              key.click();
+            }
+          }
+        }
+      }
+    }
+
+    new GuiTestAdapter(service, testcases);
   </script>
 </html>
