@@ -100,9 +100,27 @@
         outline: dashed green 3px;
       }
 
-      #calculator > * {
+      #display,
+      #calculator > button {
         box-shadow: black 3px 3px 0 0;
         transform: translate(-5px, -5px);
+      }
+
+      #command {
+        padding: 0.3rem;
+        display: flex;
+        column-gap: 0.3rem;
+        justify-content: end;
+      }
+
+      #command > button {
+        padding: 0.2rem 0.2rem;
+        text-transform: uppercase;
+        background-color: lightsalmon;
+        aspect-ratio: unset;
+        font-style: italic;
+        font-size: 1rem;
+        color: darkblue;
       }
     </style>
   </head>
@@ -111,6 +129,9 @@
       <div id="display">
         <div id="small">1234&times;</div>
         <div id="big">567</div>
+      </div>
+      <div id="command">
+        <button data-literal="$">clear</button>
       </div>
       <div id="keypad">
         <button data-disabled>&leftarrow;</button>
@@ -131,7 +152,7 @@
           <button data-disabled>&dot;</button>
         </div>
         <button id="plus" data-literal="a">&plus;</button>
-        <button id="equals" data-literal="$">&equals;</button>
+        <button id="equals" data-literal="=">&equals;</button>
       </div>
     </div>
   </body>
@@ -146,7 +167,6 @@
     class GraphicAdapter {
       constructor(service) {
         const keys = document.querySelectorAll("[data-literal]");
-        console.log(keys);
         for (const number of keys) {
           number.addEventListener("click", (e) => {
             const key = e.target;
