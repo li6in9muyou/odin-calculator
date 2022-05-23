@@ -19,12 +19,69 @@ class Decimal {
     this.text = this.text.substring(0, this.text.length - 1);
   }
 
+  checkValidText() {
+    return !isNaN(Number(this.text));
+  }
+
   evaluate() {
-    const tmp = Number(this.text);
-    if (isNaN(tmp)) {
-      throw `Bad text for a Decimal ${this.text}`;
+    if (this.checkValidText()) {
+      return Number(this.text);
     }
-    return tmp;
+    throw `Bad text for a Decimal ${this.text}`;
+  }
+}
+
+class EnterBinaryOperatorService {
+  validOperator = {
+    subtract: {
+      text: "s",
+      operate: (left, right) => left - right,
+    },
+    add: {
+      text: "a",
+      operate: (left, right) => left + right,
+    },
+    divide: {
+      text: "d",
+      operate: (left, right) => left / right,
+    },
+    multiply: {
+      text: "m",
+      operate: (left, right) => left * right,
+    },
+  };
+
+  text = "";
+
+  addCharacter(ch) {
+    if (!ch.match(/[a-zA-Z]+/)) {
+      throw "Accepts only letters";
+    }
+    this.text += ch;
+  }
+
+  popCharacter() {
+    this.text = this.text.substring(0, this.text.length - 1);
+  }
+
+  chToOperator(c) {
+    for (const [_, op] in Object.entries(this.validOperator)) {
+      if (op.text === c) {
+        return op.operate;
+      }
+    }
+    return null;
+  }
+
+  checkValidText() {
+    return null !== this.chToOperator(this.text);
+  }
+
+  operate(lhs, rhs) {
+    if (!this.checkValidText()) {
+      throw `Unknown binary operator: ${this.text}`;
+    }
+    return this.chToOperator(this.text)(lhs, rhs);
   }
 }
 
