@@ -177,7 +177,7 @@
           number.addEventListener("click", (e) => {
             const key = e.target;
             for (const c of key.getAttribute("data-literal")) {
-              console.log("entered", c);
+              console.debug("entered", c);
               service.addCharacter(c);
             }
           });

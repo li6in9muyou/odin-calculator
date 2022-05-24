@@ -190,15 +190,21 @@ function StringAdapter(service, text) {
 }
 
 export class ConsolePort {
+  removeTrailingZeros(num, n = 6) {
+    if (num.endsWith("".padStart(n, "0"))) {
+      return num.substring(0, num.length - n - 1);
+    }
+    return num;
+  }
   render(expr) {
     if (expr.checkValidText()) {
-      let rounded = expr.evaluate().toFixed(6);
-      if (rounded.endsWith("000000")) {
-        rounded = rounded.substring(0, rounded.length - 7);
-      }
-      console.log("valid expression: ", expr.text, "=", rounded);
+      let rounded = this.removeTrailingZeros(expr.evaluate().toFixed(6));
+      const text = expr.tokens
+        .map((t) => this.removeTrailingZeros(t.text))
+        .join('');
+      console.info(`ConsolePort: ^${text}=${rounded}$`);
     } else {
-      console.log("invalid expression: ", expr.text);
+      console.debug(`ConsolePort: invalid expression ^${expr.text}$`);
     }
   }
 }
