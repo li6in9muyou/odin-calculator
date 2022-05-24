@@ -93,15 +93,17 @@
       }
 
       #display > * {
-        font-size: 8rem;
         text-align: end;
       }
 
       #small {
         font-size: 4rem;
+        min-height: 4rem;
       }
 
       #big {
+        font-size: 8rem;
+        min-height: 8rem;
       }
 
       #display {
@@ -130,8 +132,8 @@
   <body>
     <div id="calculator">
       <div id="display">
-        <div id="small">1234&times;</div>
-        <div id="big">567</div>
+        <div id="small" data-displaySmall> </div>
+        <div id="big" data-displayBig> </div>
       </div>
       <div id="command">
         <button data-literal="$">clear</button>
