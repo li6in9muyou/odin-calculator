@@ -152,7 +152,6 @@ export class PerformCalculationService {
   addCharacter(ch) {
     switch (ch) {
       case "=": {
-        this.output_port.render(this.expression);
         const result = this.expression.evaluate();
         this.expression = new EnterBinaryExpressionService();
         for (const ch of result.toFixed(6).toString()) {
@@ -161,7 +160,6 @@ export class PerformCalculationService {
         break;
       }
       case "$": {
-        this.output_port.render(this.expression);
         this.expression = new EnterBinaryExpressionService();
         break;
       }
@@ -169,9 +167,10 @@ export class PerformCalculationService {
         if (OperatorRepo.isOperator(ch) && this.expression.checkValidText()) {
           this.addCharacter("=");
         }
-        return this.expression.addCharacter(ch);
+        this.expression.addCharacter(ch);
       }
     }
+    this.output_port.render(this.expression);
   }
 
   evaluate() {
