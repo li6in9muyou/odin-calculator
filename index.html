@@ -13,7 +13,7 @@
       }
 
       body {
-        padding: 3rem;
+        padding: 0.6rem 3rem 3rem;
         background-color: dimgray;
       }
 
@@ -40,6 +40,7 @@
       }
 
       button {
+        border-radius: 2rem;
         aspect-ratio: 1;
         background-color: slategray;
         box-shadow: black 0.5rem 0.5rem 0 0;
@@ -96,11 +97,12 @@
         margin-bottom: 1rem;
         min-width: fit-content;
         box-shadow: black 0 0 0.5rem 0.2rem inset;
+        border-radius: 1rem;
       }
 
       #display > * {
         display: flex;
-        justify-content: end ;
+        justify-content: end;
         align-items: center;
       }
 
@@ -148,9 +150,18 @@
         font-size: 3rem;
         color: darkblue;
       }
+
+      body > h1 {
+        padding-left: 1.2rem;
+        color: gold;
+        font-size: 2rem;
+        padding-bottom: 0.5rem;
+        text-shadow: 1px 1px 2px darkgoldenrod;
+      }
     </style>
   </head>
   <body>
+    <h1>odin-calculator</h1>
     <div id="calculator">
       <div id="display">
         <div id="operator" data-operatorDisplay></div>
