@@ -127,7 +127,7 @@ export class PerformCalculationService {
   }
 
   setCurrentOperator(op) {
-    if (this.currOperatorSymbol !== "") {
+    if (this.currOperand !== "" && this.currOperatorSymbol !== "") {
       this.evaluate();
     }
     if (this.prevOperand === "0" && this.currOperand !== "") {
