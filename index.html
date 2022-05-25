@@ -107,14 +107,11 @@
       }
 
       #operator {
-        display: flex;
-        align-items: center;
         justify-content: center;
-
         grid-column: 1 / span 1;
         grid-row: 2 / span 1;
 
-        font-size: 4rem;
+        font-size: 6rem;
         border-top: dashed #00000050 3px;
         border-right: dashed #00000050 3px;
       }
@@ -262,7 +259,30 @@
       }
 
       setCurrOperator(text) {
-        this.operatorDisplay.firstChild.textContent = text;
+        function getOperatorRepresentation(t) {
+          switch (t) {
+            case "a": {
+              return "\u002b";
+            }
+            case "s": {
+              return "\u2212";
+            }
+            case "m": {
+              return "\u00d7";
+            }
+            case "d": {
+              return "\u00f7";
+            }
+            case "": {
+              return " ";
+            }
+            default: {
+              return `Not supported operator: ${t}`;
+            }
+          }
+        }
+        this.operatorDisplay.firstChild.textContent =
+          getOperatorRepresentation(text);
       }
 
       setCurrOperand(text) {
