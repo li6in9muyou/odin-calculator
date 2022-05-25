@@ -32,180 +32,182 @@ export const OperatorRepo = new (class {
 })();
 
 //service
-class EnterBinaryOperatorService {
-  text = "";
-
-  addCharacter(ch) {
-    if (!ch.match(/[a-zA-Z]+/)) {
-      throw "Accepts only letters";
-    }
-    this.text += ch;
-  }
-
-  popCharacter() {
-    this.text = this.text.substring(0, this.text.length - 1);
-  }
-
-  checkValidText() {
-    return OperatorRepo.isOperator(this.text);
-  }
-
-  operate(lhs, rhs) {
-    if (!this.checkValidText()) {
-      throw `Unknown binary operator: ${this.text}`;
-    }
-    return OperatorRepo.chToOperator(this.text)(lhs, rhs);
-  }
-}
-
-class EnterDecimalService {
-  text = "";
-
-  addCharacter(ch) {
-    if (!ch.match(/[\d.-]/)) {
-      throw "Accepts only digits and dot sign, minus sign";
-    }
-    if (ch === "-" && this.text !== "") {
-      throw "Accepts minus sign only as first character";
-    }
-    if (ch === "." && this.text.indexOf(".") !== -1) {
-      throw "Accepts only one dot sign";
-    }
-    this.text += ch;
-  }
-
-  popCharacter() {
-    this.text = this.text.substring(0, this.text.length - 1);
-  }
-
-  checkValidText() {
-    return !isNaN(Number(this.text));
-  }
-
-  evaluate() {
-    if (this.checkValidText()) {
-      return Number(this.text);
-    }
-    throw `Bad text for a Decimal ${this.text}`;
-  }
-}
-
-class EnterBinaryExpressionService {
-  tokens = [];
-  op;
-  lhs;
-  rhs;
-  curr;
-
-  constructor() {
-    this.op = new EnterBinaryOperatorService();
-    this.lhs = new EnterDecimalService();
-    this.rhs = new EnterDecimalService();
-    this.tokens = [this.lhs, this.op, this.rhs];
-    this.curr = 0;
-  }
-
-  addCharacter(ch) {
-    const currToken = this.tokens[this.curr];
-    try {
-      currToken.addCharacter(ch);
-    } catch (e) {
-      if (currToken.checkValidText()) {
-        ++this.curr;
-        this.addCharacter(ch);
-      } else {
-        console.error("enters", ch, "into", currToken);
-        throw "Bad";
-      }
-    }
-  }
-
-  get text() {
-    return this.lhs.text + this.op.text + this.rhs.text;
-  }
-
-  checkValidText() {
-    return (
-      this.lhs.checkValidText() &&
-      this.rhs.checkValidText() &&
-      this.op.checkValidText()
-    );
-  }
-
-  evaluate() {
-    if (this.checkValidText()) {
-      return this.op.operate(this.lhs.evaluate(), this.rhs.evaluate());
-    }
-    throw `Incomplete binary expression: "${this.text}"`;
-  }
-}
-
 export class PerformCalculationService {
-  expression;
-  output_port;
+  commands = {
+    CLEAR: "AC",
+    BACKSPACE: "<-",
+    EVAL: "=",
+  };
 
-  constructor(output_port) {
-    this.output_port = output_port;
-    this.expression = new EnterBinaryExpressionService();
+  prevOperand;
+  currOperand;
+  currOperatorSymbol;
+  port;
+
+  constructor(port) {
+    this.port = port;
+    this.reset();
   }
 
-  addCharacter(ch) {
+  dump() {
+    this.port.setCurrOperator(this.currOperatorSymbol);
+    this.port.setPrevOperand(this.prevOperand);
+    this.port.setCurrOperand(this.currOperand);
+  }
+
+  appendToCurrentOperand(ch) {
+    if (!/[\d.]/[Symbol.match](ch)) {
+      throw `Invalid character to append: ${ch}`;
+    }
+
     switch (ch) {
-      case "=": {
-        const result = this.expression.evaluate();
-        this.expression = new EnterBinaryExpressionService();
-        for (const ch of result.toFixed(6).toString()) {
-          this.expression.addCharacter(ch);
+      case ".": {
+        if (!this.currOperand.endsWith(".")) {
+          this.currOperand += ".";
         }
-        break;
-      }
-      case "$": {
-        this.expression = new EnterBinaryExpressionService();
         break;
       }
       default: {
-        if (OperatorRepo.isOperator(ch) && this.expression.checkValidText()) {
-          this.addCharacter("=");
-        }
-        this.expression.addCharacter(ch);
+        this.currOperand += ch;
+        break;
       }
     }
-    this.output_port.render(this.expression);
+    this.dump();
+  }
+
+  onCommand(cmd) {
+    switch (cmd) {
+      case this.commands.EVAL: {
+        this.evaluate();
+        break;
+      }
+      case this.commands.BACKSPACE: {
+        this.currOperand = this.currOperand.substring(0, -1);
+        break;
+      }
+      case this.commands.CLEAR: {
+        this.reset();
+        break;
+      }
+    }
+    this.dump();
+  }
+
+  reset(override) {
+    this.prevOperand = override?.prevOperand ?? "0";
+    this.currOperand = override?.currOperand ?? "";
+    this.currOperatorSymbol = override?.currOperatorSymbol ?? "";
+  }
+
+  get currOperatorFn() {
+    if (OperatorRepo.isOperator(this.currOperatorSymbol)) {
+      return OperatorRepo.chToOperator(this.currOperatorSymbol);
+    }
+    throw `Unknown operator symbol ${this.currOperatorSymbol}`;
   }
 
   evaluate() {
-    try {
-      return this.expression.evaluate();
-    } catch (e) {
-      return Number.NaN;
+    function toDecimal(t) {
+      const x = parseFloat(t);
+      if (isNaN(x)) {
+        throw `Invalid operand: "${t}"`;
+      }
+      return x;
     }
+
+    if (this.currOperatorFn === null) {
+      throw "Invalid state: evaluate with current operator function is null";
+    }
+
+    const result = this.currOperatorFn(
+      toDecimal(this.prevOperand),
+      toDecimal(this.currOperand)
+    );
+    this.reset({ prevOperand: result.toString() });
+  }
+
+  setCurrentOperator(op) {
+    if (this.currOperatorSymbol !== "") {
+      this.evaluate();
+    }
+    if (this.prevOperand === "0" && this.currOperand !== "") {
+      this.reset({ prevOperand: this.currOperand });
+    }
+    this.currOperatorSymbol = op;
+    this.dump();
   }
 }
 
 //adapters
 function StringAdapter(service, text) {
   for (const ch of text) {
-    service.addCharacter(ch);
+    switch (ch) {
+      case "$": {
+        console.debug("clear command");
+        service.onCommand(service.commands.CLEAR);
+        break;
+      }
+      case "=": {
+        console.debug("eval command");
+        service.onCommand(service.commands.EVAL);
+        break;
+      }
+      default: {
+        if (OperatorRepo.isOperator(ch)) {
+          console.debug(`set operator ${ch}`);
+          service.setCurrentOperator(ch);
+        } else {
+          console.debug(`append ${ch}`);
+          service.appendToCurrentOperand(ch);
+        }
+        break;
+      }
+    }
   }
 }
 
 export class ConsolePort {
-  removeTrailingZeros(num, n = 6) {
-    if (num.endsWith("".padStart(n, "0"))) {
-      return num.substring(0, num.length - n - 1);
-    }
-    return num;
+  setPrevOperand(text) {
+    console.info(
+      `%c${text.padStart(20, " ")}`,
+      "background-color:#bbff0060;color: gray;font-size:1.5em;padding:0.5em"
+    );
   }
-  render(expr) {
-    if (expr.checkValidText()) {
-      let rounded = this.removeTrailingZeros(expr.evaluate().toFixed(6));
-      const text = expr.tokens
-        .map((t) => this.removeTrailingZeros(t.text))
-        .join("");
-      console.info(`ConsolePort: ^${text}=${rounded}$`);
-    } else {
-      console.debug(`ConsolePort: invalid expression ^${expr.text}$`);
+
+  setCurrOperator(text) {
+    function getOperatorRepresentation(t) {
+      switch (t) {
+        case "a": {
+          return "\u002b";
+        }
+        case "s": {
+          return "\u2212";
+        }
+        case "m": {
+          return "\u00d7";
+        }
+        case "d": {
+          return "\u00f7";
+        }
+        case "": {
+          return " ";
+        }
+        default: {
+          return `Not supported operator: ${t}`;
+        }
+      }
     }
+    console.info(
+      `%c${getOperatorRepresentation(text)}`,
+      "background-color:#00ff0030;color:black;font-size:2em;padding:0.2em;"
+    );
+  }
+
+  setCurrOperand(text) {
+    console.info(
+      `%c${text.padStart(20, " ")}`,
+      "background-color:#00ff00f0;color: black;font-size:2em;font-weight:bold;font-size:1.5em;padding:0.5em"
+    );
   }
 }
 

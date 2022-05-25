@@ -132,105 +132,109 @@
   <body>
     <div id="calculator">
       <div id="display">
-        <div id="small" data-displaySmall> </div>
-        <div id="big" data-displayBig> </div>
+        <div data-operatorDisplay></div>
+        <div id="small" data-displaySmall></div>
+        <div id="big" data-displayBig></div>
       </div>
       <div id="command">
-        <button data-literal="$">clear</button>
+        <button data-literal="$" data-command>clear</button>
       </div>
       <div id="keypad">
-        <button data-disabled>&leftarrow;</button>
-        <button data-literal="d">&divide;</button>
-        <button data-literal="m">&times;</button>
-        <button data-literal="s">&minus;</button>
+        <button data-disabled data-command data-literal="<">&leftarrow;</button>
+        <button data-literal="d" data-operator>&divide;</button>
+        <button data-literal="m" data-operator>&times;</button>
+        <button data-literal="s" data-operator>&minus;</button>
         <div id="numberKeyboard">
-          <button data-literal="1">1</button>
-          <button data-literal="2">2</button>
-          <button data-literal="3">3</button>
-          <button data-literal="4">4</button>
-          <button data-literal="5">5</button>
-          <button data-literal="6">6</button>
-          <button data-literal="7">7</button>
-          <button data-literal="8">8</button>
-          <button data-literal="9">9</button>
-          <button id="zero" data-literal="0">0</button>
-          <button data-disabled>&dot;</button>
+          <button data-literal="1" data-number>1</button>
+          <button data-literal="2" data-number>2</button>
+          <button data-literal="3" data-number>3</button>
+          <button data-literal="4" data-number>4</button>
+          <button data-literal="5" data-number>5</button>
+          <button data-literal="6" data-number>6</button>
+          <button data-literal="7" data-number>7</button>
+          <button data-literal="8" data-number>8</button>
+          <button data-literal="9" data-number>9</button>
+          <button id="zero" data-literal="0" data-number>0</button>
+          <button data-disabled data-number>&dot;</button>
         </div>
-        <button id="plus" data-literal="a">&plus;</button>
-        <button id="equals" data-literal="=">&equals;</button>
+        <button id="plus" data-literal="a" data-operator>&plus;</button>
+        <button id="equals" data-literal="=" data-command>&equals;</button>
       </div>
     </div>
   </body>
   <script type="module">
-    import {
-      testcases,
-      ConsolePort,
-      PerformCalculationService,
-    } from "./main.js";
-    import { OperatorRepo } from "./main.js";
+    import { testcases, PerformCalculationService } from "./main.js";
 
     //adapters.gui
     class GraphicAdapter {
       constructor(service) {
-        const keys = document.querySelectorAll("[data-literal]");
-        for (const number of keys) {
-          number.addEventListener("contextmenu", (e) => e.preventDefault());
-          number.addEventListener("click", (e) => {
-            const key = e.target;
-            for (const c of key.getAttribute("data-literal")) {
-              console.debug("entered", c);
-              service.addCharacter(c);
-            }
+        document
+          .querySelectorAll(":not([data-disabled])[data-number]")
+          .forEach((k) => {
+            k.addEventListener("contextmenu", (e) => e.preventDefault());
+            k.addEventListener("click", () => {
+              for (const c of k.getAttribute("data-literal")) {
+                service.appendToCurrentOperand(c);
+              }
+            });
           });
-        }
+
+        document
+          .querySelectorAll(":not([data-disabled])[data-operator]")
+          .forEach((k) => {
+            k.addEventListener("contextmenu", (e) => e.preventDefault());
+            k.addEventListener("click", () => {
+              service.setCurrentOperator(k.getAttribute("data-literal"));
+            });
+          });
+
+        document
+          .querySelectorAll(":not([data-disabled])[data-command]")
+          .forEach((k) => {
+            k.addEventListener("contextmenu", (e) => e.preventDefault());
+            k.addEventListener("click", (e) => {
+              const key = e.target;
+              const c = key.getAttribute("data-literal");
+              switch (c) {
+                case "$": {
+                  service.onCommand(service.commands.CLEAR);
+                  break;
+                }
+                case "=": {
+                  service.onCommand(service.commands.EVAL);
+                  break;
+                }
+                default: {
+                  console.error(`Unsupported command: ${c}`);
+                }
+              }
+            });
+          });
       }
     }
 
     //port.out.gui
     class DisplayPort {
-      debug_port = new ConsolePort();
-      displayBig = document.querySelector("[data-displayBig]");
+      bigDisplay = document.querySelector("[data-displayBig]");
+      smallDisplay = document.querySelector("[data-displaySmall]");
+      operatorDisplay = document.querySelector("[data-operatorDisplay]");
 
-      updateCurrentToken(token) {
-        let text;
-
-        function getOperatorRepresentation(token) {
-          switch (token.text) {
-            case "a": {
-              return "\u002b";
-            }
-            case "s": {
-              return "\u2212";
-            }
-            case "m": {
-              return "\u00d7";
-            }
-            case "d": {
-              return "\u00f7";
-            }
-          }
-        }
-
-        if (OperatorRepo.isOperator(token.text)) {
-          text = getOperatorRepresentation(token);
-        } else {
-          text = token.text.replace(/\.00000\d/, "");
-          if (text.length > 9) {
-            text = token.evaluate().toPrecision(7).toString();
-          }
-        }
-        console.debug(
-          `%c-> displayBig: |${text
-            .substring(0, 10)
-            .padStart(9, "_")}|${text.substring(10)}`,
-          "color: green;font-size:2em;"
-        );
-        this.displayBig.replaceChildren(document.createTextNode(text));
+      constructor() {
+        this.bigDisplay.insertAdjacentText("afterbegin", "");
+        this.smallDisplay.insertAdjacentText("afterbegin", "");
+        this.operatorDisplay.insertAdjacentText("afterbegin", "");
       }
 
-      render(expr) {
-        this.debug_port.render(expr);
-        this.updateCurrentToken(expr.tokens[expr.curr]);
+      setPrevOperand(text) {
+        this.smallDisplay.firstChild.textContent = text;
+      }
+
+      setCurrOperator(text) {
+        this.operatorDisplay.firstChild.textContent = text;
+      }
+
+      setCurrOperand(text) {
+        this.bigDisplay.firstChild.textContent = text;
       }
     }
 
