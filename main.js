@@ -1,5 +1,5 @@
 // domain.js
-const OperatorRepo = new (class {
+export const OperatorRepo = new (class {
   validOperator = {
     subtract: {
       text: "s",
@@ -201,7 +201,7 @@ export class ConsolePort {
       let rounded = this.removeTrailingZeros(expr.evaluate().toFixed(6));
       const text = expr.tokens
         .map((t) => this.removeTrailingZeros(t.text))
-        .join('');
+        .join("");
       console.info(`ConsolePort: ^${text}=${rounded}$`);
     } else {
       console.debug(`ConsolePort: invalid expression ^${expr.text}$`);
@@ -237,7 +237,8 @@ export const testcases = [
     then it should cascade this binary expression before adding newly entered operator
   */
   "$1234a567s",
-  "$1234a567s1000m3d23=",
+  "$1234d23m23d23m23d23m23=",
+  "$1234a567s1000m23m45678910=",
 ];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());

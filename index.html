@@ -167,6 +167,7 @@
       ConsolePort,
       PerformCalculationService,
     } from "./main.js";
+    import { OperatorRepo } from "./main.js";
 
     //adapters.gui
     class GraphicAdapter {
@@ -185,7 +186,55 @@
       }
     }
 
-    const service = new PerformCalculationService(new ConsolePort());
+    //port.out.gui
+    class DisplayPort {
+      debug_port = new ConsolePort();
+      displayBig = document.querySelector("[data-displayBig]");
+
+      updateCurrentToken(token) {
+        let text;
+
+        function getOperatorRepresentation(token) {
+          switch (token.text) {
+            case "a": {
+              return "\u002b";
+            }
+            case "s": {
+              return "\u2212";
+            }
+            case "m": {
+              return "\u00d7";
+            }
+            case "d": {
+              return "\u00f7";
+            }
+          }
+        }
+
+        if (OperatorRepo.isOperator(token.text)) {
+          text = getOperatorRepresentation(token);
+        } else {
+          text = token.text.replace(/\.00000\d/, "");
+          if (text.length > 9) {
+            text = token.evaluate().toPrecision(7).toString();
+          }
+        }
+        console.debug(
+          `%c-> displayBig: |${text
+            .substring(0, 10)
+            .padStart(9, "_")}|${text.substring(10)}`,
+          "color: green;font-size:2em;"
+        );
+        this.displayBig.replaceChildren(document.createTextNode(text));
+      }
+
+      render(expr) {
+        this.debug_port.render(expr);
+        this.updateCurrentToken(expr.tokens[expr.curr]);
+      }
+    }
+
+    const service = new PerformCalculationService(new DisplayPort());
     const gui = new GraphicAdapter(service);
 
     //tests
