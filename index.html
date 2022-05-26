@@ -290,25 +290,6 @@
       }
     }
 
-    const service = new PerformCalculationService(new DisplayPort());
-    const gui = new GraphicAdapter(service);
-
-    //tests
-    class GuiTestAdapter {
-      constructor(service, tests) {
-        for (const test of tests) {
-          for (const ch of test) {
-            const key = document.querySelector(`[data-literal='${ch}']`);
-            if (key !== null) {
-              key.click();
-            } else {
-              throw `Literal "${ch}" is not supported in this adapter`;
-            }
-          }
-        }
-      }
-    }
-
-    new GuiTestAdapter(service, testcases);
+    new GraphicAdapter(new PerformCalculationService(new DisplayPort()))
   </script>
 </html>

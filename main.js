@@ -47,6 +47,7 @@ export class PerformCalculationService {
   constructor(port) {
     this.port = port;
     this.reset();
+    this.dump();
   }
 
   dump() {
