@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <title>calculator</title>
     <style>
+      :root {
+        --toFitHeight: 1;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -15,6 +19,9 @@
       body {
         padding: 0.6rem 3rem 3rem;
         background-color: dimgray;
+        transform: scale(var(--toFitHeight));
+        transform-origin: center top;
+        overflow: hidden;
       }
 
       #keypad {
@@ -48,7 +55,7 @@
         border: solid black 2px;
         cursor: pointer;
         color: whitesmoke;
-        font-size: 15vw;
+        font-size: 6rem;
         transition: transform 100ms, box-shadow 100ms;
       }
 
@@ -192,6 +199,27 @@
       </div>
     </div>
   </body>
+  <script>
+    const BODY = document.body;
+    console.error(BODY.clientHeight);
+
+    function setScale(f) {
+      document.documentElement.style.setProperty("--toFitHeight", f.toString());
+    }
+
+    function fitHeight() {
+      if (window.matchMedia("(max-width: 576px)").matches) {
+        setScale(1);
+        return;
+      }
+      const actualHeight = BODY.clientHeight;
+      const expectedHeight = window.innerHeight;
+      setScale(expectedHeight / actualHeight);
+    }
+
+    window.addEventListener("load", fitHeight);
+    window.addEventListener("resize", fitHeight);
+  </script>
   <script type="module">
     import { PerformCalculationService } from "./main.js";
 
