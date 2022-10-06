@@ -193,7 +193,7 @@
     </div>
   </body>
   <script type="module">
-    import { testcases, PerformCalculationService } from "./main.js";
+    import { PerformCalculationService } from "./main.js";
 
     //adapters.gui
     class GraphicAdapter {
@@ -291,6 +291,6 @@
       }
     }
 
-    new GraphicAdapter(new PerformCalculationService(new DisplayPort()))
+    new GraphicAdapter(new PerformCalculationService(new DisplayPort()));
   </script>
 </html>
