@@ -79,7 +79,9 @@ export class PerformCalculationService {
   onCommand(cmd) {
     switch (cmd) {
       case this.commands.EVAL: {
-        this.evaluate();
+        if (this.currOperand !== "" && this.currOperatorSymbol !== "") {
+          this.evaluate();
+        }
         break;
       }
       case this.commands.BACKSPACE: {
@@ -255,6 +257,12 @@ export const testcases = [
   */
   "$1234BBBd2=",
   "$2BBBBBBBBB",
+  /*
+    fix: eval when either operator or currOperand is not set
+  */
+  "$2a=",
+  "$===",
+  "$2==",
 ];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());
