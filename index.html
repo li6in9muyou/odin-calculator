@@ -183,7 +183,7 @@
         <button data-literal="$" data-command>clear</button>
       </div>
       <div id="keypad">
-        <button data-disabled data-command data-literal="<">&leftarrow;</button>
+        <button data-command data-literal="<">&leftarrow;</button>
         <button data-literal="d" data-operator>&divide;</button>
         <button data-literal="m" data-operator>&times;</button>
         <button data-literal="s" data-operator>&minus;</button>
@@ -264,6 +264,10 @@
                 }
                 case "=": {
                   service.onCommand(service.commands.EVAL);
+                  break;
+                }
+                case "<": {
+                  service.onCommand(service.commands.BACKSPACE);
                   break;
                 }
                 default: {
