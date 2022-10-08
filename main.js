@@ -83,7 +83,10 @@ export class PerformCalculationService {
         break;
       }
       case this.commands.BACKSPACE: {
-        this.currOperand = this.currOperand.substring(0, -1);
+        this.currOperand = this.currOperand.substring(
+          0,
+          this.currOperand.length - 1
+        );
         break;
       }
       case this.commands.CLEAR: {
@@ -151,6 +154,11 @@ function StringAdapter(service, text) {
       case "=": {
         console.debug("eval command");
         service.onCommand(service.commands.EVAL);
+        break;
+      }
+      case "B": {
+        console.debug("backspace command");
+        service.onCommand(service.commands.BACKSPACE);
         break;
       }
       default: {
@@ -242,6 +250,11 @@ export const testcases = [
   "$1234a567s",
   "$1234d23m23d23m23d23m23=",
   "$1234a567s1000m23m45678910=",
+  /*
+    backspace, remove last character of currentOperand
+  */
+  "$1234BBBd2=",
+  "$2BBBBBBBBB",
 ];
 for (const testcase of testcases) {
   let service = new PerformCalculationService(new ConsolePort());
